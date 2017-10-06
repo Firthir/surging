@@ -17,47 +17,58 @@ function findMatches(wordToMatch, cities) {
   });
 }
 
-function displayMatches() {
-  const matchArray = findMatches(this.state.value, cities);
-  const html = matchArray.map(place => {
-    const regex = new RegExp(this.value, 'gi');
-    const cityName = place.city.replace(regex, `<span class="hl">${this.value}</span>`);
-    const stateName = place.state.replace(regex, `<span class="hl">${this.value}</span>`);
-    return `
-    <li>
-      <span class="name">${cityName}, ${stateName}</span>
-      <span class="population">${place.population}</span>
-    </li>
-    `;
-  }).join('');
-  //suggestions.innerHTML = html;
-}
-
-
-
 class Aform extends Component {
-
-
   constructor(props) {
     super(props);
-    this.state = {value: ''};
+    this.state = {
+      value: '',
+      matches: []
+    };
     this.handleChange = this.handleChange.bind(this);
   }
 
   handleChange(event) {
-    this.setState({value: event.target.value});
-    findMatches(event.target.value, cities)
+    this.setState({
+      value: event.target.value,
+      matches: findMatches(event.target.value, cities)
+    });
   }
 
+  renderMatches () {
+    if (this.state.matches.length) {
+      return (
+        <ul className="suggestions">
+          {
+            this.state.matches.map(place => {
+              const regex = new RegExp(this.state.value, 'gi');
+              const cityName = place.city.replace(regex, `<span class="hl">${this.state.value}</span>`);
+              const stateName = place.state.replace(regex, `<span class="hl">${this.state.value}</span>`);
+              const html = `${cityName}, ${stateName}`
+              return (
+                <li key={place.city + place.state}>
+                  <span className="name" dangerouslySetInnerHTML={{__html: html}} />
+                  <span className="population">{place.population}</span>
+                </li>
+              )
+            })
+          }
+        </ul>
+      )
+    } else {
+      return (
+        <ul className="suggestions">
+          <li key='filter'>Filter for a city</li>
+          <li key='state'>or a state</li>
+        </ul>
+      )
+    }
+  }
 
   render() {
     return (
       <form className="search-form">
         <input type="text" className="search" placeholder="City or State" value={this.state.value} onChange={this.handleChange} />
-        <ul className="suggestions">
-          <li>Filter for a city</li>
-          <li>or a state</li>
-        </ul>
+        {this.renderMatches()}
       </form>
     );
   }
